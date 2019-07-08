@@ -19,12 +19,12 @@ server.get("/api/users", (req, res) => {
     });
 });
 
-server.get("/api/users/:id", (req, res) => {
-  const { id } = req.params;
-  User.findById(id)
+// helper method that is resuable by http requests
+const findUserById = (id, req, res, status) => {
+    User.findById(id)
     .then(user => {
       if (user) {
-        res.status(200).json(user);
+        res.status(status).json(user);
       } else {
         res
           .status(404)
@@ -36,6 +36,11 @@ server.get("/api/users/:id", (req, res) => {
         .status(500)
         .json({ errorMessage: "The user information could not be retrieved" });
     });
+}
+
+server.get("/api/users/:id", (req, res) => {
+  const { id } = req.params;
+  findUserById(id, req, res, 200);
 });
 
 server.post("/api/users/", (req, res) => {
@@ -44,7 +49,7 @@ server.post("/api/users/", (req, res) => {
     const user = { name, bio };
     User.insert(user)
       .then(data => {
-        res.status(201).json(data);
+        findUserById(data.id, req, res, 201);
       })
       .catch(() => {
         res.status(500).json({
