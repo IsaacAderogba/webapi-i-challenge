@@ -20,8 +20,8 @@ server.get("/api/users", (req, res) => {
 });
 
 // helper method that is resuable by http requests
-const findUserById = (id, req, res, status) => {
-    User.findById(id)
+const respondWithIdOfUser = (id, req, res, status) => {
+  User.findById(id)
     .then(user => {
       if (user) {
         res.status(status).json(user);
@@ -36,11 +36,11 @@ const findUserById = (id, req, res, status) => {
         .status(500)
         .json({ errorMessage: "The user information could not be retrieved" });
     });
-}
+};
 
 server.get("/api/users/:id", (req, res) => {
   const { id } = req.params;
-  findUserById(id, req, res, 200);
+  respondWithIdOfUser(id, req, res, 200);
 });
 
 server.post("/api/users/", (req, res) => {
@@ -49,7 +49,7 @@ server.post("/api/users/", (req, res) => {
     const user = { name, bio };
     User.insert(user)
       .then(data => {
-        findUserById(data.id, req, res, 201);
+        respondWithIdOfUser(data.id, req, res, 201);
       })
       .catch(() => {
         res.status(500).json({
@@ -66,17 +66,34 @@ server.post("/api/users/", (req, res) => {
 
 server.delete("/api/users/:id", (req, res) => {
   const { id } = req.params;
-  User.remove(id)
+  let userToDelete;
+
+  User.findById(id)
     .then(user => {
       if (user) {
-        res.status(200).json(user);
+        userToDelete = user;
+        User.remove(id)
+          .then(user => {
+            if (user) {
+              res.status(200).json(userToDelete);
+            } else {
+              res.status(404).json({
+                message: `The user with an ID of ${id} does not exist.`
+              });
+            }
+          })
+          .catch(() => {
+            res
+              .status(500)
+              .json({ errorMessage: "The user could not be removed" });
+          });
       } else {
         res
           .status(404)
           .json({ message: `The user with an ID of ${id} does not exist.` });
       }
     })
-    .catch(() => {
+    .catch(error => {
       res.status(500).json({ errorMessage: "The user could not be removed" });
     });
 });
@@ -89,7 +106,7 @@ server.put("/api/users/:id", (req, res) => {
     User.update(id, user)
       .then(user => {
         if (user) {
-          res.status(200).json(user);
+          respondWithIdOfUser(id, req, res, 200);
         } else {
           res
             .status(404)
