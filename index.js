@@ -3,8 +3,9 @@ const express = require("express");
 const server = express();
 const User = require("./data/db");
 
-// 2 - Configure the newly created server to parse JSON
+// 2 - Configure the newly created server to parse JSON and use CORS
 server.use(express.json());
+server.use(cors());
 
 // 3 - Create endpoints
 server.get("/api/users", (req, res) => {
