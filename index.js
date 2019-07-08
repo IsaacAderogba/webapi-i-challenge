@@ -8,7 +8,15 @@ server.use(express.json());
 
 // 3 - Create endpoints
 server.get("/api/users", (req, res) => {
-  res.json("get users endpoints");
+  User.find()
+    .then(users => {
+      res.status(200).json(users);
+    })
+    .catch(() => {
+      res
+        .status(500)
+        .json({ errorMessage: "The users information could not be retrieved" });
+    });
 });
 
 server.get("/api/users/:id", (req, res) => {
@@ -24,12 +32,10 @@ server.post("/api/users/", (req, res) => {
         res.status(201).json(data);
       })
       .catch(() => {
-        res
-          .status(500)
-          .json({
-            errorMessage:
-              "There was an error while saving the user to the database"
-          });
+        res.status(500).json({
+          errorMessage:
+            "There was an error while saving the user to the database"
+        });
       });
   } else {
     res
