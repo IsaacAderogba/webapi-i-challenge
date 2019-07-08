@@ -20,7 +20,22 @@ server.get("/api/users", (req, res) => {
 });
 
 server.get("/api/users/:id", (req, res) => {
-  res.json("get users by id endpoint");
+  const { id } = req.params;
+  User.findById(id)
+    .then(user => {
+      if (user) {
+        res.status(200).json(user);
+      } else {
+        res
+          .status(404)
+          .json({ message: `The user with an ID of ${id} does not exist.` });
+      }
+    })
+    .catch(error => {
+      res
+        .status(500)
+        .json({ errorMessage: "The user information could not be retrieved" });
+    });
 });
 
 server.post("/api/users/", (req, res) => {
